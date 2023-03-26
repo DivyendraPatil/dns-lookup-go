@@ -1,3 +1,3 @@
-module dns-lookup-go
+module app
 
-go 1.16
+go 1.20

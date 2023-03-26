@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"log"
 	"net"
-	"os"
 	"strings"
 )
 
@@ -15,15 +15,28 @@ type DnsData struct {
 }
 
 func main() {
+	dnsPtr := flag.String("dns", "", "DNS name to look up")
+	flag.Parse()
 
-	input := os.Args[1]
-	incomingDns := strings.TrimSuffix(input, "\n")
-	ips, err := net.LookupIP(incomingDns)
-	if err != nil {
-		panic(err)
+	if *dnsPtr == "" {
+		log.Fatal("Missing DNS name argument")
 	}
 
-	data := new(DnsData)
+	incomingDns := strings.TrimSpace(*dnsPtr)
+	ips, err := net.LookupIP(incomingDns)
+	if err != nil {
+		log.Fatalf("Error looking up IP address for %s: %v", incomingDns, err)
+	}
+
+	data := &DnsData{
+		DNS:   incomingDns,
+		CName: "",
+		IpsV4: make([]string, 0),
+		IpsV6: make([]string, 0),
+	}
+
+	data.CName, _ = net.LookupCNAME(data.DNS)
+
 	for _, ip := range ips {
 		if ip.To4() != nil {
 			data.IpsV4 = append(data.IpsV4, ip.String())
@@ -32,11 +45,8 @@ func main() {
 		}
 	}
 
-	data.DNS = incomingDns
-	data.CName, _ = net.LookupCNAME(data.DNS)
-
-	fmt.Printf("DNS:   %s \n", data.DNS)
-	fmt.Printf("CName: %s \n", data.CName)
-	fmt.Printf("IpsV4: %s \n", data.IpsV4)
-	fmt.Printf("IpsV6: %s", data.IpsV6)
+	log.Printf("DNS:   %s", data.DNS)
+	log.Printf("CName: %s", data.CName)
+	log.Printf("IpsV4: %v", data.IpsV4)
+	log.Printf("IpsV6: %v", data.IpsV6)
 }
