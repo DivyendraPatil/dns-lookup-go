@@ -17,8 +17,6 @@ Build by running the below command in the current folder
 
 Run by:
 
-`./dns-check -dns divyendra.com`
-
 ```
 dns-lookup-go git:(main) ✗ ./dns-check -dns divyendra.com
 DNS:   divyendra.com 
